@@ -1,9 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:project_plugin/login_screen.dart';
 
-class RegisterSpalshScreen extends StatelessWidget {
-  const RegisterSpalshScreen({super.key});
+class RegisterSpalshScreen extends StatefulWidget {
+  final String userId;
+  const RegisterSpalshScreen({super.key, required this.userId});
 
+  @override
+  State<RegisterSpalshScreen> createState() => _RegisterSpalshScreenState();
+}
+
+class _RegisterSpalshScreenState extends State<RegisterSpalshScreen> {
+  String now = DateFormat('yyyy. MM. dd').format(DateTime.now());
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -49,7 +57,7 @@ class RegisterSpalshScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Text(
-                    "회원가입 아이디: heoeunseo",
+                    "회원가입 아이디: ${widget.userId}",
                     style: TextStyle(
                       fontWeight: FontWeight.w400,
                       fontSize: 16,
@@ -58,7 +66,7 @@ class RegisterSpalshScreen extends StatelessWidget {
                   ),
                   SizedBox(height: 10),
                   Text(
-                    "가입일: 2024.06.16 ",
+                    "가입일: $now ",
                     style: TextStyle(
                       fontWeight: FontWeight.w400,
                       fontSize: 16,

@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:project_plugin/findID_screen.dart';
@@ -14,6 +15,7 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController useridcontroller = TextEditingController();
   final TextEditingController passwordcontroller = TextEditingController();
+  final FirebaseAuth _auth = FirebaseAuth.instance;
 
   String? errorMessage;
 
@@ -28,15 +30,15 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> login(BuildContext context) async {
-    // 여기에 로그인 로직을 추가하세요.
-    // 예를 들어, Firebase Auth를 사용하여 로그인할 수 있습니다.
-    // 로그인 성공 시 다음 화면으로 이동하거나 성공 메시지를 표시합니다.
-
-    // 예시: 로그인 성공 후 메시지 표시
-    showmessage("로그인 성공!");
-
-    // 로그인 성공 후 다른 화면으로 이동하려면 아래 코드를 사용하세요.
-    // Navigator.pushReplacementNamed(context, '/home');
+    try {
+    UserCredential credential = await _auth.signInWithEmailAndPassword(
+      email: useridcontroller.text,
+      password: passwordcontroller.text,
+    );
+       
+    }on FirebaseAuthException catch (e) {
+       
+    }
   }
 
   Widget toggleObscurePassword() {
@@ -93,6 +95,7 @@ class _LoginScreenState extends State<LoginScreen> {
         errorstatus = false;
       });
       login(context);
+      showmessage('로그인 성공');
     }
   }
 

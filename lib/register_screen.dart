@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:project_plugin/register_spalsh_screen.dart';
@@ -15,6 +16,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final TextEditingController useridcontroller = TextEditingController();
   final TextEditingController passwordcontroller = TextEditingController();
   final TextEditingController checkpasswordcontroller = TextEditingController();
+  final FirebaseAuth _auth = FirebaseAuth.instance;
 
   bool obscurePassword = true;
   bool obscureCheckPassword = true;
@@ -54,10 +56,36 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
-  Future<void> register(BuildContext context, String message) async {
+  Future<void> register(BuildContext context) async {
+    try {
+      UserCredential userCredential = await _auth
+          .createUserWithEmailAndPassword(
+            email: useridcontroller.text,
+            password: passwordcontroller.text,
+          );
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder:
+              (context) => RegisterSpalshScreen(userId: useridcontroller.text),
+        ),
+      );
+    } on FirebaseAuthException catch (e) {
+      showmessage("회원가입 실패: ${e.message}");
+      print("${e.message}");
+    }
+  }
+
+  void checkRegister() {
     if (useridcontroller.text.isEmpty) {
       setState(() {
-        message = "아이디를 입력해주세요.";
+        errorMessage = "아이디를 입력해주세요.";
+        errorstatus = true;
+      });
+    } else if (passwordcontroller.text.isEmpty) {
+      setState(() {
+        errorMessage = "비밀번호를 입력해주세요.";
+        errorstatus = true;
       });
     } else if (useridcontroller.text.contains(" ")) {
       setState(() {
@@ -73,26 +101,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
         useridcontroller.text.contains("*")) {
       setState(() {
         errorMessage = "아이디에 특수문자가 포함될 수 없습니다.";
-        errorstatus = true;
-      });
-    } else if (passwordcontroller.text.isEmpty) {
-      setState(() {
-        message = "비밀번호를 입력해주세요.";
-      });
-    } else {
-      showmessage("회원가입 성공!");
-    }
-  }
-
-  void checkRegister() {
-    if (useridcontroller.text.isEmpty) {
-      setState(() {
-        errorMessage = "아이디를 입력해주세요.";
-        errorstatus = true;
-      });
-    } else if (passwordcontroller.text.isEmpty) {
-      setState(() {
-        errorMessage = "비밀번호를 입력해주세요.";
         errorstatus = true;
       });
     } else if (passwordcontroller.text.length < 8 ||
@@ -111,11 +119,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         errorMessage = null;
         errorstatus = false;
       });
-      register(context, "회원가입 성공!");
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => RegisterSpalshScreen()),
-      );
+      register(context);
     }
   }
 
