@@ -19,6 +19,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   bool obscurePassword = true;
 
+  bool errorstatus = false;
   bool loginremember = false;
   void showmessage(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
@@ -43,10 +44,11 @@ class _LoginScreenState extends State<LoginScreen> {
       icon:
           obscurePassword
               ? Image.asset('assets/icon/eyes_off.png')
-              : SvgPicture.asset('assets/icon/eye_on.svg'),
+              : Image.asset('assets/icon/eyes_on.png'),
       onPressed: () {
         setState(() {
           obscurePassword = !obscurePassword;
+          print(obscurePassword);
         });
       },
     );
@@ -56,14 +58,39 @@ class _LoginScreenState extends State<LoginScreen> {
     if (useridcontroller.text.isEmpty) {
       setState(() {
         errorMessage = "아이디를 입력해주세요.";
+        errorstatus = true;
+      });
+    } else if (useridcontroller.text.contains(" ")) {
+      setState(() {
+        errorMessage = "아이디에 공백이 포함될 수 없습니다.";
+        errorstatus = true;
+      });
+    } else if (useridcontroller.text.contains("#") ||
+        useridcontroller.text.contains("!") ||
+        useridcontroller.text.contains("\$") ||
+        useridcontroller.text.contains("%") ||
+        useridcontroller.text.contains("^") ||
+        useridcontroller.text.contains("&") ||
+        useridcontroller.text.contains("*")) {
+      setState(() {
+        errorMessage = "아이디에 특수문자가 포함될 수 없습니다.";
+        errorstatus = true;
       });
     } else if (passwordcontroller.text.isEmpty) {
       setState(() {
         errorMessage = "비밀번호를 입력해주세요.";
+        errorstatus = true;
+      });
+    } else if (passwordcontroller.text.length < 8 ||
+        passwordcontroller.text.length > 16) {
+      setState(() {
+        errorMessage = "비밀번호는 8자 이상 16자 이하로 입력해주세요.";
+        errorstatus = true;
       });
     } else {
       setState(() {
         errorMessage = null;
+        errorstatus = false;
       });
       login(context);
     }
@@ -89,18 +116,18 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
             ),
             SizedBox(height: 40),
-            _TextFieldLabel("아이디"),
+            _TextFieldLabel("이메일"),
             TextFormField(
               cursorColor: Colors.black,
               controller: useridcontroller,
               validator: (value) {
                 if (value == null || value.isEmpty) {
-                  return '아이디를 입력해주세요.';
+                  return '이메일을 입력해주세요.';
                 }
                 return null;
               },
               decoration: InputDecoration(
-                hintText: "아이디를 입력해주세요",
+                hintText: "이메일을 입력해주세요",
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
@@ -109,7 +136,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   borderSide: BorderSide(color: Colors.black),
                 ),
                 errorText: errorMessage,
-                errorStyle: TextStyle(color: Colors.red, fontSize: 14),
+                errorStyle: TextStyle(color: Colors.red, fontSize: 11),
               ),
             ),
             SizedBox(height: 20),
@@ -127,9 +154,12 @@ class _LoginScreenState extends State<LoginScreen> {
                 focusedBorder: OutlineInputBorder(
                   borderSide: BorderSide(color: Colors.black),
                 ),
+                errorText: errorMessage,
+                errorStyle: TextStyle(color: Colors.red, fontSize: 11),
                 suffixIcon: toggleObscurePassword(),
               ),
             ),
+            SizedBox(height: 10),
             Align(
               alignment: Alignment.centerLeft,
               child: Row(
@@ -209,7 +239,7 @@ class _LoginScreenState extends State<LoginScreen> {
               height: 57,
               child: ElevatedButton(
                 onPressed: () {
-                  login(context);
+                  checkLogin();
                 },
                 style: ButtonStyle(
                   backgroundColor: WidgetStateProperty.all<Color>(
@@ -250,7 +280,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     "회원가입",
                     style: TextStyle(
                       color: Color(0xff808080),
-                      fontSize: 16,
+                      fontSize: 14,
                       fontWeight: FontWeight.w500,
                       decoration: TextDecoration.underline,
                       decorationColor: Color(0xff808080),
@@ -315,13 +345,27 @@ class _LoginScreenState extends State<LoginScreen> {
   Align _TextFieldLabel(String text) {
     return Align(
       alignment: Alignment.bottomLeft,
-      child: Text(
-        text,
-        style: TextStyle(
-          color: Color(0xff454545),
-          fontSize: 20,
-          fontWeight: FontWeight.w500,
-        ),
+      child: Row(
+        children: [
+          Text(
+            text,
+            style: TextStyle(
+              color: Color(0xff454545),
+              fontSize: 20,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          errorstatus
+              ? Text(
+                "*",
+                style: TextStyle(
+                  color: Colors.red,
+                  fontSize: 20,
+                  fontWeight: FontWeight.w500,
+                ),
+              )
+              : Container(),
+        ],
       ),
     );
   }
