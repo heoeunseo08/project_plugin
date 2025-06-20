@@ -1,7 +1,8 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:project_plugin/findID_screen.dart';
+import 'package:project_plugin/app_screen.dart';
+import 'package:project_plugin/find_id_screen.dart';
 import 'package:project_plugin/passwordReset_screen.dart';
 import 'package:project_plugin/register_screen.dart';
 
@@ -31,14 +32,14 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<void> login(BuildContext context) async {
     try {
-    UserCredential credential = await _auth.signInWithEmailAndPassword(
-      email: useridcontroller.text,
-      password: passwordcontroller.text,
-    );
-       
-    }on FirebaseAuthException catch (e) {
-       
-    }
+      UserCredential credential = await _auth.signInWithEmailAndPassword(
+        email: useridcontroller.text,
+        password: passwordcontroller.text,
+      );
+      Navigator.of(
+        context,
+      ).pushReplacement(MaterialPageRoute(builder: (context) => AppScreen()));
+    } on FirebaseAuthException catch (e) {}
   }
 
   Widget toggleObscurePassword() {
@@ -320,7 +321,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       context,
                       MaterialPageRoute(
                         builder: (context) {
-                          return PasswordresetScreen();
+                          return FindidScreen();
                         },
                       ),
                     );

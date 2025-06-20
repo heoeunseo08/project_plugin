@@ -87,4 +87,5 @@ class DefaultFirebaseOptions {
     storageBucket: 'plug-in-team.firebasestorage.app',
     measurementId: 'G-443CJP53N2',
   );
+
 }
