@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:project_plugin/login_screen.dart';
+import 'package:project_plugin/login/login_screen.dart';
 
 class RegisterSpalshScreen extends StatefulWidget {
   final String userId;

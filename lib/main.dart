@@ -1,8 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:project_plugin/login/check_auth.dart';
 import 'package:project_plugin/firebase_options.dart';
-import 'package:project_plugin/login_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -16,6 +16,6 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(home: LoginScreen(), debugShowCheckedModeBanner: false);
+    return MaterialApp(home: CheckAuth(), debugShowCheckedModeBanner: false);
   }
 }

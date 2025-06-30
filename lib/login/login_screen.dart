@@ -1,10 +1,9 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
-import 'package:project_plugin/app_screen.dart';
-import 'package:project_plugin/find_id_screen.dart';
-import 'package:project_plugin/passwordReset_screen.dart';
-import 'package:project_plugin/register_screen.dart';
+import 'package:project_plugin/login/check_auth.dart';
+import 'package:project_plugin/login/find_id_screen.dart';
+import 'package:project_plugin/login/register_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -16,7 +15,6 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController useridcontroller = TextEditingController();
   final TextEditingController passwordcontroller = TextEditingController();
-  final FirebaseAuth _auth = FirebaseAuth.instance;
 
   String? errorMessage;
 
@@ -32,14 +30,19 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<void> login(BuildContext context) async {
     try {
-      UserCredential credential = await _auth.signInWithEmailAndPassword(
-        email: useridcontroller.text,
-        password: passwordcontroller.text,
-      );
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('keepLogin', loginremember);
       Navigator.of(
+        // ignore: use_build_context_synchronously
         context,
-      ).pushReplacement(MaterialPageRoute(builder: (context) => AppScreen()));
-    } on FirebaseAuthException catch (e) {}
+      ).pushReplacement(MaterialPageRoute(builder: (context) => CheckAuth()));
+      showmessage('로그인 성공!');
+    } on FirebaseAuthException {
+      setState(() {
+        errorMessage = "로그인에 실패하셨습니다. 다시 시도해주세요";
+        errorstatus = true;
+      });
+    }
   }
 
   Widget toggleObscurePassword() {
@@ -51,7 +54,6 @@ class _LoginScreenState extends State<LoginScreen> {
       onPressed: () {
         setState(() {
           obscurePassword = !obscurePassword;
-          print(obscurePassword);
         });
       },
     );
@@ -96,7 +98,6 @@ class _LoginScreenState extends State<LoginScreen> {
         errorstatus = false;
       });
       login(context);
-      showmessage('로그인 성공');
     }
   }
 
@@ -181,7 +182,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                   Text(
-                    "아이디 저장",
+                    "로그인 유지",
                     style: TextStyle(
                       color: Color(0xff454545),
                       fontSize: 16,

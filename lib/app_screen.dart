@@ -1,6 +1,5 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:project_plugin/community_screen.dart';
+import 'package:project_plugin/community/community_screen.dart';
 import 'package:project_plugin/map_screen.dart';
 import 'package:project_plugin/profile_screen.dart';
 

@@ -1,10 +1,6 @@
-import 'dart:math';
-
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
-import 'package:project_plugin/register_spalsh_screen.dart';
+import 'package:project_plugin/login/register_spalsh_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -17,8 +13,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final TextEditingController useridcontroller = TextEditingController();
   final TextEditingController passwordcontroller = TextEditingController();
   final TextEditingController checkpasswordcontroller = TextEditingController();
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   bool obscurePassword = true;
   bool obscureCheckPassword = true;
@@ -60,11 +54,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   Future<void> register(BuildContext context) async {
     try {
-      UserCredential userCredential = await _auth
-          .createUserWithEmailAndPassword(
-            email: useridcontroller.text,
-            password: passwordcontroller.text,
-          );
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
@@ -74,7 +63,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
       );
     } on FirebaseAuthException catch (e) {
       showmessage("회원가입 실패: ${e.message}");
-      print("${e.message}");
     }
   }
 

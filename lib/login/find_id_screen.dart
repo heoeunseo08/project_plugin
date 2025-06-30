@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:project_plugin/find_id_spalsh_screen.dart';
+import 'package:project_plugin/login/find_id_spalsh_screen.dart';
 
 class FindidScreen extends StatefulWidget {
   const FindidScreen({super.key});
@@ -157,6 +157,7 @@ class _FindidScreenState extends State<FindidScreen> {
     );
   }
 
+  // ignore: non_constant_identifier_names
   Align _TextFieldLabel(String text) {
     return Align(
       alignment: Alignment.bottomLeft,
