@@ -10,6 +10,9 @@ class MyPostScreen extends StatefulWidget {
 class _MyPostScreenState extends State<MyPostScreen> {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(body: Text('쓴 글 페이지'));
+    return Scaffold(
+      appBar: AppBar(title: Text("돌아가기")),
+      body: Center(child: Text('쓴 글 페이지')),
+    );
   }
 }

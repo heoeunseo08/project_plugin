@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:project_plugin/login/check_auth.dart';
 import 'package:project_plugin/login/find_id_screen.dart';
+import 'package:project_plugin/login/passwordReset_screen.dart';
 import 'package:project_plugin/login/register_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -16,31 +17,42 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController useridcontroller = TextEditingController();
   final TextEditingController passwordcontroller = TextEditingController();
 
-  String? errorMessage;
-
+  String? emailError;
+  String? passwordError;
   bool obscurePassword = true;
+  bool loginremember = true;
+  bool isLoading = false;
 
-  bool errorstatus = false;
-  bool loginremember = false;
   void showmessage(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), duration: Duration(milliseconds: 500)),
+      SnackBar(content: Text(message), duration: Duration(milliseconds: 800)),
     );
   }
 
   Future<void> login(BuildContext context) async {
+    setState(() {
+      isLoading = true;
+    });
+
     try {
+      await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: useridcontroller.text.trim(),
+        password: passwordcontroller.text.trim(),
+      );
+
       SharedPreferences prefs = await SharedPreferences.getInstance();
       await prefs.setBool('keepLogin', loginremember);
+
+      // ignore: use_build_context_synchronously
       Navigator.of(
-        // ignore: use_build_context_synchronously
         context,
       ).pushReplacement(MaterialPageRoute(builder: (context) => CheckAuth()));
       showmessage('로그인 성공!');
-    } on FirebaseAuthException {
+    } on FirebaseAuthException catch (e) {
+      showmessage('로그인 실패: ${e.message ?? "다시 시도해주세요"}');
+    } finally {
       setState(() {
-        errorMessage = "로그인에 실패하셨습니다. 다시 시도해주세요";
-        errorstatus = true;
+        isLoading = false;
       });
     }
   }
@@ -60,43 +72,25 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void checkLogin() {
-    if (useridcontroller.text.isEmpty) {
-      setState(() {
-        errorMessage = "아이디를 입력해주세요.";
-        errorstatus = true;
-      });
-    } else if (useridcontroller.text.contains(" ")) {
-      setState(() {
-        errorMessage = "아이디에 공백이 포함될 수 없습니다.";
-        errorstatus = true;
-      });
-    } else if (useridcontroller.text.contains("#") ||
-        useridcontroller.text.contains("!") ||
-        useridcontroller.text.contains("\$") ||
-        useridcontroller.text.contains("%") ||
-        useridcontroller.text.contains("^") ||
-        useridcontroller.text.contains("&") ||
-        useridcontroller.text.contains("*")) {
-      setState(() {
-        errorMessage = "아이디에 특수문자가 포함될 수 없습니다.";
-        errorstatus = true;
-      });
-    } else if (passwordcontroller.text.isEmpty) {
-      setState(() {
-        errorMessage = "비밀번호를 입력해주세요.";
-        errorstatus = true;
-      });
-    } else if (passwordcontroller.text.length < 8 ||
-        passwordcontroller.text.length > 16) {
-      setState(() {
-        errorMessage = "비밀번호는 8자 이상 16자 이하로 입력해주세요.";
-        errorstatus = true;
-      });
+    final email = useridcontroller.text.trim();
+    final password = passwordcontroller.text;
+
+    setState(() {
+      emailError = null;
+      passwordError = null;
+    });
+
+    if (email.isEmpty) {
+      setState(() => emailError = "이메일을 입력해주세요.");
+    } else if (email.contains(" ")) {
+      setState(() => emailError = "이메일에 공백이 포함될 수 없습니다.");
+    } else if (RegExp(r'[!#\$%^&*()]').hasMatch(email)) {
+      setState(() => emailError = "이메일에 특수문자가 포함될 수 없습니다.");
+    } else if (password.isEmpty) {
+      setState(() => passwordError = "비밀번호를 입력해주세요.");
+    } else if (password.length < 8 || password.length > 16) {
+      setState(() => passwordError = "비밀번호는 8자 이상 16자 이하로 입력해주세요.");
     } else {
-      setState(() {
-        errorMessage = null;
-        errorstatus = false;
-      });
       login(context);
     }
   }
@@ -121,31 +115,24 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
             ),
             SizedBox(height: 40),
-            _TextFieldLabel("이메일"),
+            _TextFieldLabel("이메일", emailError != null),
             TextFormField(
               cursorColor: Colors.black,
               controller: useridcontroller,
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return '이메일을 입력해주세요.';
-                }
-                return null;
-              },
               decoration: InputDecoration(
                 hintText: "이메일을 입력해주세요",
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
-                focusColor: Colors.black,
                 focusedBorder: OutlineInputBorder(
                   borderSide: BorderSide(color: Colors.black),
                 ),
-                errorText: errorMessage,
+                errorText: emailError,
                 errorStyle: TextStyle(color: Colors.red, fontSize: 11),
               ),
             ),
             SizedBox(height: 20),
-            _TextFieldLabel("비밀번호"),
+            _TextFieldLabel("비밀번호", passwordError != null),
             TextField(
               obscureText: obscurePassword,
               cursorColor: Colors.black,
@@ -155,42 +142,35 @@ class _LoginScreenState extends State<LoginScreen> {
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
-                focusColor: Colors.black,
                 focusedBorder: OutlineInputBorder(
                   borderSide: BorderSide(color: Colors.black),
                 ),
-                errorText: errorMessage,
+                errorText: passwordError,
                 errorStyle: TextStyle(color: Colors.red, fontSize: 11),
                 suffixIcon: toggleObscurePassword(),
               ),
             ),
             SizedBox(height: 10),
-            Align(
-              alignment: Alignment.centerLeft,
-              child: Row(
-                children: [
-                  IconButton(
-                    onPressed: () {
-                      setState(() {
-                        loginremember = !loginremember;
-                      });
-                    },
-                    icon: Image.asset(
-                      loginremember
-                          ? "assets/icon/save_id_on.png"
-                          : "assets/icon/save_id_off.png",
-                    ),
+            Row(
+              children: [
+                IconButton(
+                  onPressed:
+                      () => setState(() => loginremember = !loginremember),
+                  icon: Image.asset(
+                    loginremember
+                        ? "assets/icon/save_id_on.png"
+                        : "assets/icon/save_id_off.png",
                   ),
-                  Text(
-                    "로그인 유지",
-                    style: TextStyle(
-                      color: Color(0xff454545),
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                    ),
+                ),
+                Text(
+                  "로그인 유지",
+                  style: TextStyle(
+                    color: Color(0xff454545),
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
             SizedBox(height: 30),
             SizedBox(
@@ -199,24 +179,12 @@ class _LoginScreenState extends State<LoginScreen> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  SizedBox(
-                    width: 81,
-                    height: 1,
-                    child: Container(color: Color(0xffD9D9D9)),
-                  ),
+                  Container(width: 81, height: 1, color: Color(0xffD9D9D9)),
                   Text(
                     '간편 로그인',
-                    style: TextStyle(
-                      fontWeight: FontWeight.w400,
-                      fontSize: 12,
-                      color: Color(0xff808080),
-                    ),
+                    style: TextStyle(fontSize: 12, color: Color(0xff808080)),
                   ),
-                  SizedBox(
-                    width: 81,
-                    height: 1,
-                    child: Container(color: Color(0xffD9D9D9)),
-                  ),
+                  Container(width: 81, height: 1, color: Color(0xffD9D9D9)),
                 ],
               ),
             ),
@@ -243,101 +211,52 @@ class _LoginScreenState extends State<LoginScreen> {
               width: double.infinity,
               height: 57,
               child: ElevatedButton(
-                onPressed: () {
-                  checkLogin();
-                },
+                onPressed: isLoading ? null : checkLogin,
                 style: ButtonStyle(
-                  backgroundColor: WidgetStateProperty.all<Color>(
-                    Color(0xffFFE551),
-                  ),
-                  shape: WidgetStateProperty.all<RoundedRectangleBorder>(
+                  backgroundColor: WidgetStateProperty.all(Color(0xffFFE551)),
+                  shape: WidgetStateProperty.all(
                     RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
                   ),
                 ),
-                child: Text(
-                  "로그인",
-                  style: TextStyle(
-                    color: Color(0xff454545),
-                    fontSize: 18,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
+                child:
+                    isLoading
+                        ? CircularProgressIndicator(color: Colors.black)
+                        : Text(
+                          "로그인",
+                          style: TextStyle(
+                            color: Color(0xff454545),
+                            fontSize: 18,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
               ),
             ),
             SizedBox(height: 10),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) {
-                          return RegisterScreen();
-                        },
-                      ),
-                    );
-                  },
-                  child: Text(
-                    "회원가입",
-                    style: TextStyle(
-                      color: Color(0xff808080),
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                      decoration: TextDecoration.underline,
-                      decorationColor: Color(0xff808080),
-                    ),
-                  ),
-                ),
+                _LinkButton("회원가입", () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => RegisterScreen()),
+                  );
+                }),
                 SizedBox(width: 10),
-                TextButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) {
-                          return FindidScreen();
-                        },
-                      ),
-                    );
-                  },
-                  child: Text(
-                    "아이디 찾기",
-                    style: TextStyle(
-                      color: Color(0xff808080),
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                      decoration: TextDecoration.underline,
-                      decorationColor: Color(0xff808080),
-                    ),
-                  ),
-                ),
+                _LinkButton("아이디 찾기", () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => FindidScreen()),
+                  );
+                }),
                 SizedBox(width: 10),
-                TextButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) {
-                          return FindidScreen();
-                        },
-                      ),
-                    );
-                  },
-                  child: Text(
-                    "비밀번호 재설정",
-                    style: TextStyle(
-                      color: Color(0xff808080),
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                      decoration: TextDecoration.underline,
-                      decorationColor: Color(0xff808080),
-                    ),
-                  ),
-                ),
+                _LinkButton("비밀번호 재설정", () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => PasswordresetScreen()),
+                  );
+                }),
               ],
             ),
           ],
@@ -346,8 +265,7 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  // ignore: non_constant_identifier_names
-  Align _TextFieldLabel(String text) {
+  Align _TextFieldLabel(String text, bool isError) {
     return Align(
       alignment: Alignment.bottomLeft,
       child: Row(
@@ -360,17 +278,32 @@ class _LoginScreenState extends State<LoginScreen> {
               fontWeight: FontWeight.w500,
             ),
           ),
-          errorstatus
-              ? Text(
-                "*",
-                style: TextStyle(
-                  color: Colors.red,
-                  fontSize: 20,
-                  fontWeight: FontWeight.w500,
-                ),
-              )
-              : Container(),
+          if (isError)
+            Text(
+              "*",
+              style: TextStyle(
+                color: Colors.red,
+                fontSize: 20,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
         ],
+      ),
+    );
+  }
+
+  Widget _LinkButton(String text, VoidCallback onTap) {
+    return TextButton(
+      onPressed: onTap,
+      child: Text(
+        text,
+        style: TextStyle(
+          color: Color(0xff808080),
+          fontSize: 14,
+          fontWeight: FontWeight.w500,
+          decoration: TextDecoration.underline,
+          decorationColor: Color(0xff808080),
+        ),
       ),
     );
   }

@@ -7,12 +7,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:project_plugin/app_screen.dart';
+import 'package:project_plugin/main.dart';
 
 Future<void> saveUserData({
   required String name,
   required String username,
   required String phoneNumber,
   required String image,
+  required String region,
 }) async {
   final user = FirebaseAuth.instance.currentUser;
   if (user == null) return;
@@ -25,6 +27,7 @@ Future<void> saveUserData({
     'image': image.trim(),
     'username': username.trim(),
     'phoneNumber': phoneNumber.trim(),
+    'region': region.trim(),
   });
 }
 
@@ -63,6 +66,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   final TextEditingController nameController = TextEditingController();
   final TextEditingController usernameController = TextEditingController();
   final TextEditingController phoneNumberController = TextEditingController();
+
+  String dropdownValue = list.first;
 
   bool errorstatus = false;
   String? errorMessage;
@@ -252,7 +257,55 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   LengthLimitingTextInputFormatter(17),
                 ],
               ),
-              SizedBox(height: 40),
+              SizedBox(height: 20),
+              _TextFieldLabel("거주 시 또는 도"),
+              Container(
+                width: double.infinity,
+                height: 54,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: DropdownButtonFormField<String>(
+                  decoration: InputDecoration(
+                    border: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color: Color(0xffB7B7B7),
+                        width: 2.0,
+                      ), // outline 색상과 너비 설정
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color: Color(0xffB7B7B7),
+                        width: 1.0,
+                      ), // 활성화 상태에서의 outline
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color: Color(0xffB7B7B7),
+                        width: 1.0,
+                      ),
+                    ),
+                  ),
+                  value: dropdownValue,
+                  icon: Icon(Icons.keyboard_arrow_down),
+                  elevation: 5,
+                  borderRadius: BorderRadius.circular(8),
+                  dropdownColor: Colors.white,
+                  style: TextStyle(color: Color(0xffB7B7B7)),
+                  onChanged: (String? value) {
+                    setState(() {
+                      dropdownValue = value!;
+                    });
+                  },
+                  items:
+                      list.map<DropdownMenuItem<String>>((String value) {
+                        return DropdownMenuItem<String>(
+                          value: value,
+                          child: Text(value),
+                        );
+                      }).toList(),
+                ),
+              ),
               SizedBox(
                 width: double.infinity,
                 height: 57,
@@ -269,6 +322,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       username: usernameController.text,
                       phoneNumber: phoneNumberController.text,
                       image: imageUrl ?? '',
+                      region: '',
                     );
 
                     Navigator.push(

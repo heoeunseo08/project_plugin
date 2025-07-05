@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:project_plugin/login/check_auth.dart';
 import 'package:project_plugin/firebase_options.dart';
 
+const List<String> list = <String>['서울특별시', '광주광역시'];
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
